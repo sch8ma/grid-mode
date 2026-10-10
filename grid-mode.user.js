@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Grid Mode — I Turned the Entire Internet Into a Cyberpunk Terminal
 // @namespace    https://schema.cx/grid-mode
-// @version      1.4.0
+// @version      1.5.0
 // @description  Press Alt+G on any website to render it through the Grid. Calm is a beautiful dark mode for every site; Cinematic adds a terminal boot, target-lock brackets, decoding headlines, scanlines and duotone images. Five colour lenses. Press it again to come back. Made by Schema.
 // @author       Schema
 // @homepageURL  https://schema.cx/?ref=grid-mode
@@ -93,7 +93,7 @@
 
     // ─── Constants ──────────────────────────────────────────────────────────
 
-    const VERSION = '1.4.0';
+    const VERSION = '1.5.0';
     const HOST = location.hostname || 'local';
     const JOIN_URL = 'https://schema.cx/?ref=grid-mode';
     const STATS_URL = 'https://api.schema.cx/api/stats';
@@ -857,6 +857,12 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
 .toast.whisper { bottom: 52px; border-color: color-mix(in srgb, var(--acc) 45%, var(--line)); box-shadow: 0 24px 60px -20px rgba(0,0,0,.85), 0 0 34px -14px var(--acc); }
 .toast.whisper .say { display: block; min-height: 1.4em; font: 500 11.5px/1.5 var(--mono); color: var(--ink2); }
 .toast.whisper .say::after { content: '▍'; color: var(--acc); animation: caret .6s steps(1) infinite; }
+.toast.whisper .door { display: flex; align-items: center; gap: 10px; margin-top: 9px; flex-wrap: wrap; }
+.toast.whisper .door code {
+  padding: 5px 8px; border: 1px dashed color-mix(in srgb, var(--acc) 55%, var(--line)); border-radius: 3px;
+  font: 600 11.5px/1 var(--mono); letter-spacing: .08em; color: var(--acc2); user-select: all; cursor: text;
+}
+.toast.whisper .door .go { display: inline-flex; align-items: center; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .sweep, .dot, .lines div:last-child::after { animation: none !important; }
@@ -1917,6 +1923,18 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
 
     const pick = (list) => list[(Math.random() * list.length) | 0];
 
+    // Three doors into Schema's closed beta, one at the end of each trail. Each is
+    // a group key: one code, a few dozen places, its own name, so the Architects
+    // can see which secret brought whom. When the places are gone the door closes;
+    // new versions of the Grid may hide new ones.
+    const DOORS = {
+      console: 'SCH-CITIZEN-MWHYZFSC',
+      ensina: 'SCH-CITIZEN-80AYEPQ6',
+      void: 'SCH-CITIZEN-6QVNBNWH',
+    };
+    const doorUrl = (via) => `https://schema.cx/beta?code=${DOORS[via]}&ref=grid-mode-${via}`;
+    let ensinaCalls = 0;
+
     const BOOT_LORE = [
       'WAKING ENSINA ... SHE WAS ALREADY AWAKE',
       'CHECKING KETCHUP RESERVES ... NOMINAL',
@@ -1949,17 +1967,26 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
     let lastLine = -1;
 
     // A note from the Grid, typed out in the voice it came from.
-    function whisper(title, text, ms) {
+    function whisper(title, text, ms, door) {
       ensureUI();
       const say = h('span', { class: 'say' });
+      const doorRow = door
+        ? h(
+            'span',
+            { class: 'door' },
+            h('code', { text: DOORS[door], title: 'Click to select' }),
+            h('a', { class: 'go', href: doorUrl(door), target: '_blank', rel: 'noopener' }, 'OPEN THE DOOR ↗'),
+          )
+        : null;
       const close = () => t.remove();
       const t = h(
         'div',
         { class: 'toast whisper', role: 'status' },
         mark(),
-        h('div', {}, h('b', { text: title }), say),
+        h('div', {}, h('b', { text: title }), say, doorRow),
         h('button', { class: 'x', type: 'button', 'aria-label': 'Dismiss', onclick: close }, '✕'),
       );
+      for (const old of ui.wrap.querySelectorAll('.whisper')) old.remove(); // one voice at a time
       ui.wrap.append(t);
       if (REDUCED) say.textContent = text;
       else {
@@ -1978,16 +2005,20 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       do i = (Math.random() * ENSINA.length) | 0;
       while (i === lastLine && ENSINA.length > 1);
       lastLine = i;
-      whisper('ENSINA', ENSINA[i]);
       sfx.toggle();
+      if (++ensinaCalls === 3) {
+        whisper('ENSINA', 'You keep calling. Here is a door, before someone else walks through it.', 16000, 'ensina');
+        return;
+      }
+      whisper('ENSINA', ENSINA[i]);
     }
 
     function unlockVoid() {
       if (!prefs.void) {
         prefs.void = true;
         savePrefs();
-        whisper('VOID LENS UNLOCKED', 'The Architects see the Grid in black and white. Now so do you.', 9000);
-      } else whisper('VOID', 'You already found it. The door stays open for the ones who knock twice.');
+        whisper('VOID LENS UNLOCKED', 'The Architects see the Grid in black and white. Now so do you. They left a key here.', 16000, 'void');
+      } else whisper('VOID', 'You already found it. The door stays open for the ones who knock twice.', 12000, 'void');
       setLens('void');
       sfx.boot();
     }
@@ -2027,7 +2058,8 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       greeted = true;
       try {
         console.log(
-          '%c GRID // SCHEMA %c\n\nYou opened the console. Ensina noticed.\nShe left you something: type her name anywhere in the Grid.\n\n' + JOIN_URL,
+          '%c GRID // SCHEMA %c\n\nYou opened the console. Ensina noticed.\nShe left you something: type her name anywhere in the Grid.\n\n' +
+            'And for the ones who look under the floor, a key:\n' + DOORS.console + '  →  ' + doorUrl('console'),
           'background:#D63A32;color:#fff;font:700 12px monospace;padding:4px 8px;letter-spacing:.2em',
           'color:#B5BDCA;font:12px/1.6 monospace',
         );
