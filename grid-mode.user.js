@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Grid Mode — I Turned the Entire Internet Into a Cyberpunk Terminal
 // @namespace    https://schema.cx/grid-mode
-// @version      1.5.0
+// @version      1.6.0
 // @description  Press Alt+G on any website to render it through the Grid. Calm is a beautiful dark mode for every site; Cinematic adds a terminal boot, target-lock brackets, decoding headlines, scanlines and duotone images. Five colour lenses. Press it again to come back. Made by Schema.
 // @author       Schema
 // @homepageURL  https://schema.cx/?ref=grid-mode
@@ -93,7 +93,7 @@
 
     // ─── Constants ──────────────────────────────────────────────────────────
 
-    const VERSION = '1.5.0';
+    const VERSION = '1.6.0';
     const HOST = location.hostname || 'local';
     const JOIN_URL = 'https://schema.cx/?ref=grid-mode';
     const STATS_URL = 'https://api.schema.cx/api/stats';
@@ -674,7 +674,7 @@ a { color: inherit; }
 /* HUD — full in Cinematic, a single mark in Calm that unfolds on hover or focus. */
 .hud {
   position: fixed; left: 12px; bottom: 12px; z-index: ${Z + 40};
-  display: flex; align-items: stretch; height: 30px;
+  display: flex; align-items: stretch; height: 30px; width: max-content; max-width: calc(100vw - 24px);
   background: rgba(10,13,18,.86);
   -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
   border: 1px solid var(--line); border-radius: 8px;
@@ -690,7 +690,9 @@ a { color: inherit; }
 .hud.mini .more { max-width: 0; opacity: 0; }
 .hud.mini:hover .more, .hud.mini:focus-within .more { max-width: 900px; opacity: 1; }
 .hud.mini:not(:hover):not(:focus-within)::before, .hud.mini:not(:hover):not(:focus-within)::after { opacity: 0; }
-.seg { display: flex; align-items: center; gap: 6px; padding: 0 10px; white-space: nowrap; }
+.seg { flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; white-space: nowrap; }
+.x, .fold { flex: none; }
+.more { min-width: 0; }
 .k { color: var(--ink3); }
 .v { color: var(--ink); font-variant-numeric: tabular-nums; }
 .brand { gap: 8px; padding: 0 11px 0 9px; color: var(--ink); font-weight: 600; border-radius: 7px; transition: background .15s ease; }
@@ -710,6 +712,7 @@ a { color: inherit; }
 .x:hover { color: var(--ink); background: var(--hover); }
 @keyframes rise { from { opacity: 0; transform: translateY(10px) scale(.97); } }
 @media (max-width: 820px) { .opt { display: none !important; } }
+@media (max-width: 520px) { .dep { display: none !important; } }
 
 /* Lens flash */
 .flash {
@@ -723,92 +726,108 @@ a { color: inherit; }
 .flash span { color: var(--acc); }
 @keyframes flash { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.96); } 15% { opacity: 1; transform: translate(-50%, 0); } 75% { opacity: 1; } 100% { opacity: 0; } }
 
-/* Panel */
+/* Panel. Schema's popover recipe: one hairline frame, a 40 px header with a
+   rule, footnote section labels, WHITE selection (Schema reads white-first; red
+   is the focus ring and the one CTA), 3 px controls. */
 .panel {
   position: fixed; left: 12px; bottom: 50px; z-index: ${Z + 40};
-  width: 332px; max-width: calc(100vw - 24px); max-height: calc(100vh - 70px);
-  overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--line2) transparent;
-  padding: 16px;
-  background: rgba(17,21,30,.97);
-  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
-  border: 1px solid var(--line); border-radius: 12px;
-  box-shadow: 0 30px 80px -24px rgba(0,0,0,.85), 0 0 0 1px rgba(0,0,0,.35);
-  font: 400 13px/1.45 var(--sans); color: var(--ink);
+  display: flex; flex-direction: column;
+  width: 340px; max-width: calc(100vw - 24px); max-height: calc(100vh - 70px);
+  overflow: hidden;
+  background: #11151E; border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 24px 64px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(0,0,0,.4);
+  font: 400 12.5px/1.45 var(--sans); color: var(--ink);
   transform-origin: 0 100%;
-  animation: pop .26s var(--spring) both;
+  animation: pop .22s cubic-bezier(.2,.9,.25,1) both;
 }
-@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.96); } }
-.hd { display: flex; align-items: center; gap: 10px; }
-.hd svg { width: 20px; height: 23px; filter: drop-shadow(0 0 8px rgba(214,58,50,.5)); }
-.hd h2 { margin: 0; font: 800 14px/1 var(--sans); letter-spacing: .2em; color: var(--ink); }
-.ver { margin-left: auto; font: 500 9.5px/1 var(--mono); color: var(--ink3); letter-spacing: .08em; }
-.lede { margin: 10px 0 0; color: var(--ink2); font-size: 12.5px; }
-.lbl { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; font: 600 9.5px/1 var(--mono); color: var(--ink3); letter-spacing: .16em; }
-.lbl::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); }
-.mode { padding: 9px 10px 8px; border-radius: 3px; transition: background .18s ease, box-shadow .18s ease; }
-.mode b { display: block; font: 700 10px/1 var(--mono); letter-spacing: .14em; color: var(--ink2); transition: color .15s ease; }
-.mode span { display: block; margin-top: 5px; font-size: 11px; line-height: 1.3; color: var(--ink3); }
-.mode:hover { background: var(--hover); }
-.mode[aria-pressed="true"] { background: color-mix(in srgb, var(--acc) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 55%, transparent); }
-.mode[aria-pressed="true"] b { color: var(--ink); }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+.panel :focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.phd { flex: none; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 12px; border-bottom: 1px solid var(--line); }
+.phd svg { width: 13px; height: 15px; filter: drop-shadow(0 0 5px rgba(214,58,50,.5)); }
+.phd h2 { margin: 0; font: 600 13px/1 var(--sans); color: var(--ink); }
+.phd .ver { font: 500 11px/1 var(--mono); color: var(--ink3); }
+.phd .close { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 3px; color: var(--ink3); font-size: 13px; transition: background .15s ease, color .15s ease; }
+.phd .close:hover { background: rgba(237,240,245,.06); color: var(--ink); }
+.pbody { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 2px 12px 12px; scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
+.lede { margin: 10px 0 0; font-size: 12px; color: var(--ink3); }
+.sec { margin-top: 16px; }
+.plabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font: 700 11px/1.4 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
+.plabel .hint { font-weight: 600; color: var(--ink2); transition: color .15s ease; }
+
+/* Segmented control: a faint track, the chosen item lifted onto the page's dark. */
+.segc { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border-radius: 3px; background: rgba(237,240,245,.05); }
+.segc .ind {
+  position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 3px); border-radius: 3px;
+  background: var(--base); box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 0 0 1px rgba(237,240,245,.07);
+  transition: transform .26s cubic-bezier(.2,.9,.25,1), opacity .15s ease;
+}
+.segc[data-v="cinematic"] .ind { transform: translateX(calc(100% + 2px)); }
+.segc[data-v="custom"] .ind { opacity: 0; }
+.segc button { position: relative; height: 28px; border-radius: 3px; text-align: center; font: 600 12px/1 var(--sans); color: var(--ink3); transition: color .15s ease; }
+.segc button:hover { color: var(--ink2); }
+.segc button[aria-checked="true"] { color: var(--ink); }
+.mdesc { margin: 8px 0 0; min-height: 2.9em; font-size: 11.5px; line-height: 1.45; color: var(--ink3); }
+
+/* Lens swatches: a radio group; the chosen one wears the white selection ring. */
 .lenses { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
-.lens {
-  display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 10px 0 8px;
-  border: 1px solid var(--line); border-radius: 8px; text-align: center;
-  font: 600 8.5px/1 var(--mono); letter-spacing: .1em; color: var(--ink2);
-  transition: border-color .15s ease, background .15s ease, transform .18s cubic-bezier(.2,.9,.3,1.3), color .15s ease;
-}
-.lens i { width: 14px; height: 14px; border-radius: 3px; background: var(--c); box-shadow: 0 0 12px -1px var(--c); }
-.lens:hover { border-color: var(--line2); background: var(--hover); transform: translateY(-1px); }
-.lens:active { transform: translateY(1px) scale(.97); }
-.lens[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--ink); }
-.hint { margin: 7px 0 0; font: 500 9.5px/1.2 var(--mono); color: var(--ink3); letter-spacing: .06em; }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 8px 2px; border-radius: 3px; }
-.row + .row { border-top: 1px solid rgba(36,42,54,.7); }
-.row:hover .t { color: #fff; }
-.t { display: block; font-size: 13px; color: var(--ink); transition: color .15s ease; }
-.s { display: block; margin-top: 2px; font-size: 11px; line-height: 1.3; color: var(--ink3); }
-.sw { position: relative; flex: none; width: 30px; height: 16px; border-radius: 8px; background: var(--line2); transition: background .18s ease; }
+.lens { display: grid; place-items: center; height: 30px; border-radius: 3px; border: 1px solid var(--line); background: rgba(237,240,245,.03); transition: border-color .15s ease, background .15s ease; }
+.lens i { width: 14px; height: 14px; border-radius: 2px; background: var(--c); box-shadow: 0 0 10px -2px var(--c); transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
+.lens:hover { border-color: var(--line2); background: rgba(237,240,245,.06); }
+.lens:hover i { transform: scale(1.14); }
+.lens:active i { transform: scale(.9); }
+.lens[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px rgba(237,240,245,.35); }
+
+/* Switch rows: Schema's Switch — a 28×16 track, a 10 px thumb that travels on
+   transform; on = white track, page-dark thumb. Position, not just colour, carries state. */
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 7px 0; border-radius: 3px; text-align: left; }
+.row + .row { border-top: 1px solid rgba(36,42,54,.6); }
+.t { display: block; font-size: 12.5px; line-height: 1.3; color: var(--ink); }
+.s { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: var(--ink3); }
+.sw { position: relative; flex: none; width: 28px; height: 16px; border-radius: 3px; border: 1px solid var(--line2); background: rgba(237,240,245,.04); transition: background .18s ease, border-color .18s ease; }
 .sw::after {
-  content: ''; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%;
-  background: var(--ink2); transition: transform .24s cubic-bezier(.2,.9,.3,1.35), background .18s ease;
+  content: ''; position: absolute; left: 2px; top: 50%; width: 10px; height: 10px; border-radius: 2px;
+  background: rgba(120,130,146,.85); transform: translate(0, -50%);
+  transition: transform .2s cubic-bezier(.2,.9,.25,1), background .18s ease;
 }
-.row[aria-checked="true"] .sw { background: var(--acc); }
-.row[aria-checked="true"] .sw::after { transform: translateX(14px); background: #fff; }
-details { margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; }
-summary {
-  display: flex; align-items: center; gap: 8px; padding: 9px 10px; cursor: pointer; list-style: none;
-  font: 600 9.5px/1 var(--mono); letter-spacing: .14em; color: var(--ink2); border-radius: 7px;
+.row:hover .sw { border-color: var(--ink3); }
+.row:active .sw::after { transform: translate(0, -50%) scale(.85); }
+.row[aria-checked="true"] .sw { background: var(--ink); border-color: transparent; }
+.row[aria-checked="true"] .sw::after { transform: translate(12px, -50%); background: var(--base); }
+.row[aria-checked="true"]:active .sw::after { transform: translate(12px, -50%) scale(.85); }
+
+/* Fine-tune: a quiet disclosure under the mode. */
+.tune { margin-top: 6px; }
+.tune summary {
+  display: flex; align-items: center; gap: 6px; height: 28px; margin: 0 -8px; padding: 0 8px; border-radius: 3px;
+  list-style: none; cursor: pointer; font: 600 12px/1 var(--sans); color: var(--ink2); transition: background .15s ease, color .15s ease;
 }
-summary::-webkit-details-marker { display: none; }
-summary::after { content: ''; margin-left: auto; width: 6px; height: 6px; border: 0 solid var(--ink3); border-right-width: 1.5px; border-bottom-width: 1.5px; transform: rotate(45deg) translateY(-2px); transition: transform .2s ease; }
-details[open] summary::after { transform: rotate(225deg) translateY(-1px); }
-summary:hover { background: var(--hover); color: var(--ink); }
-summary .cnt { color: var(--acc); }
-details .rows { padding: 0 10px 4px; }
-.join {
-  position: relative; overflow: hidden; margin-top: 16px; padding: 14px;
-  border: 1px solid color-mix(in srgb, var(--brand) 40%, var(--line)); border-radius: 12px;
-  background: radial-gradient(120% 120% at 100% 0%, rgba(214,58,50,.2), transparent 60%), var(--card);
-}
-.join::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.02) 0 1px, transparent 1px 3px); }
-.jh { display: flex; align-items: center; gap: 8px; font: 800 12px/1 var(--sans); letter-spacing: .32em; color: var(--ink); }
-.jh svg { width: 14px; height: 16px; }
-.join p { margin: 8px 0 12px; font-size: 12.5px; color: var(--ink2); }
-.join p b { color: var(--ink); font-weight: 600; }
+.tune summary::-webkit-details-marker { display: none; }
+.tune summary::before { content: ''; width: 5px; height: 5px; border: 0 solid currentColor; border-right-width: 1.5px; border-bottom-width: 1.5px; transform: rotate(-45deg); transition: transform .2s ease; }
+.tune[open] summary::before { transform: rotate(45deg); }
+.tune summary:hover { background: rgba(237,240,245,.05); color: var(--ink); }
+.tune .cnt { margin-left: auto; font: 500 11px/1 var(--mono); color: var(--ink3); }
+.tune .cnt.custom { color: var(--acc2); }
+.tune .rows { padding-top: 2px; }
+
+/* The Schema card: one hairline frame, a soft top light, the one red CTA. */
+.join { position: relative; overflow: hidden; margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); }
+.join::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(90% 70% at 100% 0%, rgba(214,58,50,.14), transparent 65%), linear-gradient(to bottom, rgba(237,240,245,.035), transparent 40px); }
+.jh { position: relative; display: flex; align-items: center; gap: 7px; font: 600 12.5px/1 var(--sans); color: var(--ink); }
+.jh svg { width: 12px; height: 14px; }
+.join p { position: relative; margin: 6px 0 10px; font-size: 12px; color: var(--ink3); }
+.join p b { color: var(--ink2); font-weight: 600; }
 .cta {
-  position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 36px;
-  border-radius: 8px; background: var(--brand); color: #fff; text-decoration: none;
-  font: 700 11px/1 var(--mono); letter-spacing: .16em;
-  box-shadow: 0 8px 24px -10px rgba(214,58,50,.85), inset 0 1px 0 rgba(255,255,255,.18);
-  transition: transform .16s cubic-bezier(.2,.9,.3,1.3), box-shadow .2s ease, background .15s ease;
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px;
+  border-radius: 3px; border: 1px solid rgba(214,58,50,.45); background: var(--brand); color: #fff;
+  font: 600 12px/1 var(--sans); text-decoration: none; transition: background .15s ease, transform .12s ease;
 }
-.cta:hover { background: #E24E45; transform: translateY(-1px); box-shadow: 0 12px 30px -10px rgba(214,58,50,1), inset 0 1px 0 rgba(255,255,255,.22); }
+.cta:hover { background: #E24E45; }
 .cta:active { transform: translateY(1px); }
-.cta:focus-visible { outline-color: #fff; outline-offset: 2px; }
-.keys { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font: 500 9.5px/1 var(--mono); color: var(--ink3); letter-spacing: .08em; }
-kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px solid var(--line2); border-radius: 3px; font: inherit; color: var(--ink2); }
+.panel .cta:focus-visible { outline-color: #fff; }
+
+.pft { flex: none; display: flex; align-items: center; gap: 14px; height: 36px; padding: 0 12px; border-top: 1px solid var(--line); font: 500 11px/1 var(--sans); color: var(--ink3); }
+@media (hover: none) { .pft { display: none; } } /* keyboard hints mean nothing on a touch screen */
+kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-right: 2px; padding: 0 4px; border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 3px; font: 600 10px/1 var(--mono); color: var(--ink2); }
 
 /* Boot. The page stays where it is; a single scan line travels down and the
    Grid appears behind it. The heavy read happens while the line waits at the top. */
@@ -1124,7 +1143,7 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
           { class: 'more' },
           h('span', { class: 'seg opt' }, k('SECTOR'), ui.sector),
           h('span', { class: 'seg opt' }, k('NODES'), ui.nodes),
-          h('span', { class: 'seg' }, k('DEPTH'), ui.depth),
+          h('span', { class: 'seg dep' }, k('DEPTH'), ui.depth),
           h('span', { class: 'seg opt' }, ui.clock),
           h(
             'a',
@@ -1161,80 +1180,128 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       paintUI();
     }
 
-    function buildPanel() {
-      const lensBtns = LENS_KEYS.map((key) => {
-        const L = LENSES[key];
-        const b = h(
-          'button',
-          { class: 'lens', type: 'button', 'data-lens': key, 'aria-pressed': 'false', 'aria-label': `${L.name} lens`, hidden: L.secret && !prefs.void, onclick: () => setLens(key) },
-          h('i', { style: { '--c': L.acc } }),
-          L.name,
-        );
-        // Hovering a lens previews it on the live page; leaving puts yours back.
-        b.addEventListener('pointerenter', () => previewLens(key));
-        b.addEventListener('focus', () => previewLens(key));
-        b.addEventListener('pointerleave', () => previewLens(prefs.lens));
-        b.addEventListener('blur', () => previewLens(prefs.lens));
-        return b;
+    const MODE_COPY = {
+      calm: 'A dark mode for all-day reading. Keeps each site’s own typefaces.',
+      cinematic: 'The full render: Schema type, a scan-line boot, target lock and duotone images.',
+      custom: 'Your own mix of layers. Pick a mode to reset it.',
+    };
+
+    // A radio group that behaves like Schema's SegmentedControl: one tab stop,
+    // arrows move and choose, Home/End jump.
+    function radioGroup(cls, label, items) {
+      const group = h('div', { class: cls, role: 'radiogroup', 'aria-label': label }, items);
+      group.addEventListener('keydown', (e) => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+        if (step == null && e.key !== 'Home' && e.key !== 'End') return;
+        const list = [...group.querySelectorAll('[role="radio"]:not([hidden])')];
+        let i = list.indexOf(e.target.closest('[role="radio"]'));
+        if (i < 0) return;
+        e.preventDefault();
+        e.stopPropagation(); // arrows here are choices, never part of a secret
+        i = e.key === 'Home' ? 0 : e.key === 'End' ? list.length - 1 : (i + step + list.length) % list.length;
+        list[i].focus();
+        list[i].click();
       });
-      const modeBtn = (key, title, sub) =>
-        h(
-          'button',
-          { class: 'mode', type: 'button', 'data-mode': key, 'aria-pressed': 'false', onclick: () => setMode(key) },
-          h('b', { text: title }),
-          h('span', { text: sub }),
-        );
+      return group;
+    }
+
+    function buildPanel() {
       const row = (key, title, sub) =>
         h(
           'button',
           { class: 'row', type: 'button', role: 'switch', 'aria-checked': 'false', 'data-k': key, onclick: () => flip(key) },
-          h('span', {}, h('span', { class: 't', text: title }), h('span', { class: 's', text: sub })),
+          h('span', {}, h('span', { class: 't', text: title }), sub ? h('span', { class: 's', text: sub }) : null),
           h('span', { class: 'sw', 'aria-hidden': 'true' }),
         );
+      const label = (text, hint) => h('div', { class: 'plabel' }, h('span', { text }), hint || null);
+      const modeBtn = (key, text) =>
+        h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1', 'data-mode': key, onclick: () => setMode(key) }, text);
 
+      ui.modes = radioGroup('segc', 'Mode', [h('span', { class: 'ind', 'aria-hidden': 'true' }), modeBtn('calm', 'Calm'), modeBtn('cinematic', 'Cinematic')]);
+      ui.modeDesc = h('p', { class: 'mdesc' });
       ui.tuneCount = h('span', { class: 'cnt' });
+      ui.lensName = h('span', { class: 'hint' });
       ui.joinN = h('b', { text: 'Cities are joining the Grid' });
+
+      const lenses = radioGroup(
+        'lenses',
+        'Lens',
+        LENS_KEYS.map((key) => {
+          const L = LENSES[key];
+          const b = h(
+            'button',
+            { class: 'lens', type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1', 'data-lens': key, 'aria-label': `${L.name} lens`, title: L.name, hidden: L.secret && !prefs.void, onclick: () => setLens(key) },
+            h('i', { style: { '--c': L.acc } }),
+          );
+          // Hovering or focusing a lens previews it on the live page; leaving puts yours back.
+          b.addEventListener('pointerenter', () => previewLens(key));
+          b.addEventListener('focus', () => previewLens(key));
+          b.addEventListener('pointerleave', () => previewLens(prefs.lens));
+          b.addEventListener('blur', () => previewLens(prefs.lens));
+          return b;
+        }),
+      );
+
       return h(
         'div',
         { class: 'panel', hidden: true, role: 'dialog', 'aria-label': 'Grid Mode settings' },
-        h('div', { class: 'hd' }, mark(), h('h2', { text: 'GRID MODE' }), h('span', { class: 'ver', text: 'v' + VERSION })),
-        h('p', { class: 'lede', text: 'The web was always a simulation. This is how it renders from inside.' }),
-        h('div', { class: 'lbl', text: 'MODE' }),
-        h('div', { class: 'modes', role: 'group', 'aria-label': 'Mode' }, modeBtn('calm', 'CALM', 'A dark mode for all-day reading'), modeBtn('cinematic', 'CINEMATIC', 'The full render, made to share')),
         h(
-          'details',
-          {},
-          h('summary', {}, 'FINE-TUNE ', ui.tuneCount),
+          'div',
+          { class: 'phd' },
+          mark(),
+          h('h2', { text: 'Grid Mode' }),
+          h('span', { class: 'ver', text: 'v' + VERSION }),
+          h('button', { class: 'close', type: 'button', title: 'Close (Esc)', 'aria-label': 'Close settings', onclick: () => togglePanel(false) }, '✕'),
+        ),
+        h(
+          'div',
+          { class: 'pbody' },
+          h('p', { class: 'lede', text: 'The web was always a simulation. This is how it renders from inside.' }),
           h(
             'div',
-            { class: 'rows' },
-            row('scan', 'Scanlines', 'A screen sheen and a slow signal sweep'),
-            row('type', 'Schema typefaces', "Every font becomes Schema's. Off keeps the site's own"),
-            row('backdrop', 'Grid backdrop', 'The world grid behind every page'),
-            row('duo', 'Duotone images', 'Hover any image to see its true colours'),
-            row('decode', 'Decoding headlines', 'Titles resolve as they come into view'),
-            row('lock', 'HUD details', 'Card brackets, target lock, reticle, pings'),
-            row('sound', 'Sound', 'Ticks and a boot chord. Off until you want it'),
+            { class: 'sec' },
+            label('Mode'),
+            ui.modes,
+            ui.modeDesc,
+            h(
+              'details',
+              { class: 'tune' },
+              h('summary', {}, 'Fine-tune layers', ui.tuneCount),
+              h(
+                'div',
+                { class: 'rows' },
+                row('type', 'Schema typefaces', "Every font becomes Schema's"),
+                row('backdrop', 'Grid backdrop', 'The world grid behind the page'),
+                row('scan', 'Scanlines & light', 'Screen texture, a signal sweep, a cursor light'),
+                row('duo', 'Duotone images', 'Hover any image for its true colours'),
+                row('decode', 'Decoding headlines', 'Titles resolve as they scroll in'),
+                row('lock', 'HUD details', 'Card brackets, target lock, reticle, pings'),
+                row('sound', 'Sound', 'Ticks and a boot chord'),
+              ),
+            ),
+          ),
+          h('div', { class: 'sec' }, label('Lens', ui.lensName), lenses),
+          h(
+            'div',
+            { class: 'sec' },
+            label('Memory'),
+            row('site', `Always on for ${HOST}`, 'Opens in the Grid every time'),
+            row('everywhere', 'Always on, every site', 'Pairs with Calm. Web apps are left alone'),
+          ),
+          h(
+            'div',
+            { class: 'join' },
+            h('div', { class: 'jh' }, mark(), 'Schema'),
+            h('p', {}, 'The mission operating system for communities. ', ui.joinN, ', and the founding window is open.'),
+            h('a', { class: 'cta', href: JOIN_URL, target: '_blank', rel: 'noopener' }, 'Enter the Grid', h('span', { 'aria-hidden': 'true', text: '↗' })),
           ),
         ),
-        h('div', { class: 'lbl', text: 'LENS' }),
-        h('div', { class: 'lenses' }, lensBtns),
-        h('p', { class: 'hint', text: 'Hover to preview · click to keep' }),
-        h('div', { class: 'lbl', text: 'MEMORY' }),
-        row('site', `Always on for ${HOST}`, 'Opens in the Grid every time'),
-        row('everywhere', 'Always on, every site', 'Pairs with Calm. Web apps are left alone'),
         h(
           'div',
-          { class: 'join' },
-          h('div', { class: 'jh' }, mark(), 'SCHEMA'),
-          h('p', {}, 'The mission operating system for communities. ', ui.joinN, ', and the founding window is open.'),
-          h('a', { class: 'cta', href: JOIN_URL, target: '_blank', rel: 'noopener' }, 'ENTER THE GRID', h('span', { 'aria-hidden': 'true', text: '↗' })),
-        ),
-        h(
-          'div',
-          { class: 'keys' },
-          h('span', {}, h('kbd', { text: ALT }), h('kbd', { text: 'G' }), ' LEAVE'),
-          h('span', {}, h('kbd', { text: ALT }), h('kbd', { text: '⇧' }), h('kbd', { text: 'G' }), ' LENS'),
+          { class: 'pft' },
+          h('span', {}, h('kbd', { text: ALT }), h('kbd', { text: 'G' }), ' Leave'),
+          h('span', {}, h('kbd', { text: ALT }), h('kbd', { text: '⇧' }), h('kbd', { text: 'G' }), ' Lens'),
+          h('span', {}, h('kbd', { text: 'Esc' }), ' Close'),
         ),
       );
     }
@@ -1250,18 +1317,28 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       if (!ui) return;
       paintAccent(prefs.lens);
       const mode = modeOf();
-      for (const b of ui.panel.querySelectorAll('.mode')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+      ui.modes.dataset.v = mode;
+      for (const b of ui.modes.querySelectorAll('[role="radio"]')) {
+        const on = b.dataset.mode === mode;
+        b.setAttribute('aria-checked', String(on));
+        b.tabIndex = on || (mode === 'custom' && b.dataset.mode === 'calm') ? 0 : -1; // one tab stop
+      }
+      ui.modeDesc.textContent = MODE_COPY[mode];
       for (const b of ui.panel.querySelectorAll('.lens')) {
-        b.setAttribute('aria-pressed', String(b.dataset.lens === prefs.lens));
+        const on = b.dataset.lens === prefs.lens;
+        b.setAttribute('aria-checked', String(on));
+        b.tabIndex = on ? 0 : -1;
         b.hidden = !!LENSES[b.dataset.lens].secret && !prefs.void;
       }
+      ui.lensName.textContent = LENSES[previewing || prefs.lens].name;
       for (const r of ui.panel.querySelectorAll('.row')) {
         const key = r.dataset.k;
         const on = key === 'site' ? siteOn() : key === 'everywhere' || key === 'sound' ? !!prefs[key] : !!prefs.layers[key];
         r.setAttribute('aria-checked', String(on));
       }
       const active = LAYER_KEYS.filter((k) => prefs.layers[k]).length;
-      ui.tuneCount.textContent = mode === 'custom' ? `· CUSTOM ${active}/${LAYER_KEYS.length}` : `· ${active}/${LAYER_KEYS.length}`;
+      ui.tuneCount.textContent = (mode === 'custom' ? 'custom · ' : '') + `${active}/${LAYER_KEYS.length}`;
+      ui.tuneCount.classList.toggle('custom', mode === 'custom');
       const mini = hudMini();
       ui.hud.classList.toggle('mini', mini);
       const fold = ui.hud.querySelector('.fold');
@@ -1291,7 +1368,7 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       ui.brand.setAttribute('aria-expanded', String(open));
       if (open) {
         paintUI();
-        const first = ui.panel.querySelector('.mode[aria-pressed="true"]') || ui.panel.querySelector('button');
+        const first = ui.modes.querySelector('[role="radio"][tabindex="0"]') || ui.panel.querySelector('button');
         if (first) first.focus({ preventScroll: true });
       } else previewLens(prefs.lens);
       sfx.tick();
@@ -1332,6 +1409,7 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
       previewing = key;
       lensSheet.set(lensCss(key));
       paintLight();
+      if (ui && ui.lensName) ui.lensName.textContent = LENSES[key].name;
       paintAccent(key);
     }
 
@@ -2029,6 +2107,7 @@ kbd { display: inline-block; margin-right: 3px; padding: 3px 5px; border: 1px so
 
     function onSecretKey(e) {
       if (!state.on || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (host && e.composedPath && e.composedPath().includes(host)) return; // keys inside the panel are choices
       const tgt = e.target;
       // Never while someone is typing for real.
       if (tgt && (tgt.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tgt.tagName))) return;
