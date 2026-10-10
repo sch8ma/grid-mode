@@ -4,7 +4,7 @@
 
 A userscript by [Schema](https://schema.cx/?ref=grid-mode-github). It repaints any page as a Schema terminal; press Alt+G again and the page is exactly what it was.
 
-![A page rendered in Grid Mode](screenshots/02-encyclopedia-grid.png)
+![Alt+G on a famous front page: the scan line boots the Grid](media/grid-mode.gif)
 
 ## Install
 
