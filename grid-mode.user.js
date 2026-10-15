@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Grid Mode — I Turned the Entire Internet Into a Cyberpunk Terminal
 // @namespace    https://schema.cx/grid-mode
-// @version      1.6.0
+// @version      1.7.0
 // @description  Press Alt+G on any website to render it through the Grid. Calm is a beautiful dark mode for every site; Cinematic adds a terminal boot, target-lock brackets, decoding headlines, scanlines and duotone images. Five colour lenses. Press it again to come back. Made by Schema.
 // @author       Schema
 // @homepageURL  https://schema.cx/?ref=grid-mode
@@ -93,7 +93,7 @@
 
     // ─── Constants ──────────────────────────────────────────────────────────
 
-    const VERSION = '1.6.0';
+    const VERSION = '1.7.0';
     const HOST = location.hostname || 'local';
     const JOIN_URL = 'https://schema.cx/?ref=grid-mode';
     const STATS_URL = 'https://api.schema.cx/api/stats';
@@ -372,8 +372,8 @@ ${S} {
   --sgm-base: #0A0D12; --sgm-raise: #0D1017; --sgm-panel: #11151E; --sgm-card: #151A23;
   --sgm-line: #242A36; --sgm-line2: #343C4D;
   --sgm-ink: #EDF0F5; --sgm-ink2: #B5BDCA; --sgm-mute: #8E97A6; --sgm-link: #88BCFF;
-  --sgm-sans: 'Public Sans', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  --sgm-mono: 'Fira Code', ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --sgm-sans: 'Public Sans', 'Helvetica Neue', Helvetica, Inter, Arial, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --sgm-mono: 'Fira Code', 'SF Mono', Consolas, Menlo, 'Courier New', monospace;
   color-scheme: dark !important;
   background: var(--sgm-base) !important;
   scrollbar-color: var(--sgm-line2) var(--sgm-base);
@@ -393,7 +393,12 @@ ${M} {
   text-shadow: none !important;
   caret-color: var(--sgm-acc);
 }
-${S}.sgm-type body [${ATTR}]:not([${ATTR}~="i"]) { font-family: var(--sgm-sans) !important; }
+/* The type layer speaks for every marked element — except icons, code faces and
+   code itself, which keep the monospace the site (or the source) chose. The tag
+   exclusion matters: an element is marked even when it has no tokens, so a <pre>
+   used to match the blanket above and lose its face. */
+${S}.sgm-type body [${ATTR}]:not([${ATTR}~="i"]):not([${ATTR}~="m"]):not(:is(pre, code, kbd, samp, tt, th)) { font-family: var(--sgm-sans) !important; }
+${S}.sgm-type body [${ATTR}~="m"] { font-family: var(--sgm-mono) !important; font-variant-numeric: tabular-nums; }
 ${tok('g')} { background-image: none !important; }
 ${tok('b')} { border-color: color-mix(in srgb, var(--sgm-bh, var(--sgm-line)) 55%, var(--sgm-line)) !important; }
 
@@ -560,8 +565,10 @@ html.sgm-on.sgm-fx.sgm-on body { cursor: url("data:image/svg+xml,${encodeURIComp
   --base: #0A0D12; --panel: #11151E; --card: #151A23; --hover: #1A202B;
   --line: #242A36; --line2: #343C4D; --ink: #EDF0F5; --ink2: #B5BDCA; --ink3: #788292;
   --brand: #D63A32;
-  --sans: 'Public Sans', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'Fira Code', ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+  /* Schema's stack, with the OS UI font ahead of Arial: on a site whose policy
+     blocks the webfont (GitHub) the panel must not fall through to Arial. */
+  --sans: 'Public Sans', 'Segoe UI', system-ui, 'Helvetica Neue', Helvetica, Inter, Arial, -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'Fira Code', 'SF Mono', Consolas, Menlo, 'Courier New', monospace;
   --spring: cubic-bezier(.2,.9,.25,1.2);
   font-family: var(--sans); color: var(--ink);
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
@@ -577,9 +584,9 @@ a { color: inherit; }
 .glow {
   position: absolute; inset: 0;
   background:
-    radial-gradient(70% 60% at 0% 0%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%),
-    radial-gradient(40% 32% at 88% 6%, color-mix(in srgb, var(--acc2) 5%, transparent), transparent 70%),
-    radial-gradient(55% 45% at 100% 100%, rgba(90,167,255,.06), transparent 72%);
+    radial-gradient(70% 60% at 0% 0%, color-mix(in srgb, var(--acc) 9%, transparent), transparent 70%),
+    radial-gradient(40% 32% at 88% 6%, color-mix(in srgb, var(--acc2) 3%, transparent), transparent 70%),
+    radial-gradient(55% 45% at 100% 100%, rgba(90,167,255,.04), transparent 72%);
 }
 .gw { position: absolute; left: 0; right: 0; top: -128px; height: calc(100% + 256px); will-change: transform; }
 .gd, .gl, .flares { position: absolute; inset: 0; }
@@ -596,14 +603,14 @@ a { color: inherit; }
   mask-image: radial-gradient(260px circle at var(--mx, -999px) var(--my, -999px), #000 0, rgba(0,0,0,.35) 45%, transparent 72%);
 }
 .bd.lit .gl { opacity: 1; }
-.tex { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.03) 0 var(--px, 1px), transparent var(--px, 1px) calc(var(--px, 1px) * 3)); }
+.tex { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.022) 0 var(--px, 1px), transparent var(--px, 1px) calc(var(--px, 1px) * 3)); }
 .bd:not(.scanned) .tex { display: none; }
 .vig { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.45) 100%); }
 /* Heartbeats: now and then a node on the grid lights up, the way a Zone does on the map. */
 .flare { position: absolute; width: 0; height: 0; }
 .flare::before {
   content: ''; position: absolute; left: -3px; top: -3px; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--acc); box-shadow: 0 0 12px 2px var(--acc); animation: flare 2.6s ease-out forwards;
+  background: var(--acc); box-shadow: 0 0 9px 0 color-mix(in srgb, var(--acc) 70%, transparent); animation: flare 2.6s ease-out forwards;
 }
 .flare::after {
   content: ''; position: absolute; left: -18px; top: -18px; width: 36px; height: 36px; border-radius: 50%;
@@ -612,22 +619,22 @@ a { color: inherit; }
 @keyframes flare { 0% { opacity: 0; transform: scale(.3); } 12% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(.6); } }
 @keyframes flare-ring { 0% { opacity: .8; transform: scale(.1); } 60% { opacity: 0; transform: scale(1.4); } 100% { opacity: 0; } }
 
-/* Over the page, only what a screen adds: a pixel-aligned scanline (so it never
-   moirés or softens text), soft corners, and the signal sweep. Never clickable. */
+/* Over the page, only what a screen adds: a vignette and the sweep. The fine
+   scanline texture stays BEHIND the content (.tex) — a white hairline grid on a
+   black field reads as grey milk over the words, which is the opposite of a screen. */
 .scan {
   position: fixed; inset: 0; z-index: ${Z}; pointer-events: none; overflow: hidden;
-  background: repeating-linear-gradient(to bottom, rgba(255,255,255,.014) 0 var(--px, 1px), transparent var(--px, 1px) calc(var(--px, 1px) * 3));
 }
-.scan::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 64%, rgba(0,0,0,.22) 100%); }
+.scan::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.26) 100%); }
 .sweep {
-  position: absolute; left: 0; right: 0; top: -140px; height: 140px;
-  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--acc) 3%, transparent) 70%, color-mix(in srgb, var(--acc) 10%, transparent) 97%, color-mix(in srgb, var(--acc2) 45%, transparent) 99.4%, transparent);
-  mix-blend-mode: screen;
-  animation: sweep 18s cubic-bezier(.45,0,.55,1) 6s infinite backwards;
+  position: absolute; left: 0; right: 0; top: -240px; height: 240px;
+  background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--acc) 3%, transparent) 68%, color-mix(in srgb, var(--acc) 7%, transparent) 92%, color-mix(in srgb, var(--acc2) 16%, transparent) 97.5%, color-mix(in srgb, var(--acc2) 26%, transparent) 99.4%, transparent 100%);
+  opacity: .8;
+  animation: sweep 26s cubic-bezier(.4,0,.6,1) 9s infinite backwards;
 }
-.sweep.once { animation: sweep-once 1s cubic-bezier(.6,.05,.3,1) 1 both; }
-@keyframes sweep { 0% { transform: translateY(0); } 10% { transform: translateY(calc(100vh + 140px)); } 100% { transform: translateY(calc(100vh + 140px)); } }
-@keyframes sweep-once { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 140px)); } }
+.sweep.once { animation: sweep-once 1.05s cubic-bezier(.5,.05,.3,1) 1 both; }
+@keyframes sweep { 0% { transform: translateY(0); } 9% { transform: translateY(calc(100vh + 240px)); } 100% { transform: translateY(calc(100vh + 240px)); } }
+@keyframes sweep-once { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 240px)); } }
 
 /* Target lock */
 .lock {
@@ -639,7 +646,7 @@ a { color: inherit; }
     height .17s cubic-bezier(.2,.9,.3,1.12), opacity .16s ease;
 }
 .lock.on { opacity: 1; }
-.lock i { position: absolute; width: 12px; height: 12px; border: 0 solid var(--acc); filter: drop-shadow(0 0 4px var(--acc)); }
+.lock i { position: absolute; width: 12px; height: 12px; border: 0 solid var(--acc); }
 .lock i:nth-child(1) { left: 0; top: 0; border-left-width: 1.5px; border-top-width: 1.5px; }
 .lock i:nth-child(2) { right: 0; top: 0; border-right-width: 1.5px; border-top-width: 1.5px; }
 .lock i:nth-child(3) { left: 0; bottom: 0; border-left-width: 1.5px; border-bottom-width: 1.5px; }
@@ -697,7 +704,7 @@ a { color: inherit; }
 .v { color: var(--ink); font-variant-numeric: tabular-nums; }
 .brand { gap: 8px; padding: 0 11px 0 9px; color: var(--ink); font-weight: 600; border-radius: 7px; transition: background .15s ease; }
 .brand:hover, .brand[aria-expanded="true"] { background: color-mix(in srgb, var(--acc) 15%, transparent); }
-.brand svg { width: 13px; height: 15px; filter: drop-shadow(0 0 5px rgba(214,58,50,.55)); }
+.brand svg { width: 13px; height: 15px; }
 .sl { color: var(--acc); }
 .live { text-decoration: none; color: var(--ink); transition: background .15s ease; }
 .live:hover { background: color-mix(in srgb, var(--acc) 12%, transparent); }
@@ -720,67 +727,94 @@ a { color: inherit; }
   padding: 8px 12px; border: 1px solid var(--acc); border-radius: 8px;
   background: rgba(10,13,18,.9); color: var(--ink);
   font: 600 10.5px/1 var(--mono); letter-spacing: .16em;
-  box-shadow: 0 0 30px -8px var(--acc);
+  box-shadow: 0 0 16px -11px var(--acc);
   animation: flash 1.1s var(--spring) forwards; pointer-events: none;
 }
 .flash span { color: var(--acc); }
 @keyframes flash { 0% { opacity: 0; transform: translate(-50%, 8px) scale(.96); } 15% { opacity: 1; transform: translate(-50%, 0); } 75% { opacity: 1; } 100% { opacity: 0; } }
 
-/* Panel. Schema's popover recipe: one hairline frame, a 40 px header with a
-   rule, footnote section labels, WHITE selection (Schema reads white-first; red
-   is the focus ring and the one CTA), 3 px controls. */
+/* Panel. The Outpost's own recipe at popover size: a hairline frame, a header
+   cut off by the brand's red rule, full-bleed section bands, outlined option
+   cards that carry their own line, and a black status bar for the footer.
+   Schema reads white-first — red is the focus ring and the one CTA. */
 .panel {
   position: fixed; left: 12px; bottom: 50px; z-index: ${Z + 40};
   display: flex; flex-direction: column;
-  width: 340px; max-width: calc(100vw - 24px); max-height: calc(100vh - 70px);
+  width: 344px; max-width: calc(100vw - 24px); max-height: calc(100vh - 70px);
   overflow: hidden;
-  background: #11151E; border: 1px solid var(--line); border-radius: 12px;
-  box-shadow: 0 24px 64px -20px rgba(0,0,0,.8), 0 0 0 1px rgba(0,0,0,.4);
+  background: var(--base); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 24px 64px -22px rgba(0,0,0,.85);
   font: 400 12.5px/1.45 var(--sans); color: var(--ink);
   transform-origin: 0 100%;
   animation: pop .22s cubic-bezier(.2,.9,.25,1) both;
 }
 @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
-.panel :focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
-.phd { flex: none; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 6px 0 12px; border-bottom: 1px solid var(--line); }
-.phd svg { width: 13px; height: 15px; filter: drop-shadow(0 0 5px rgba(214,58,50,.5)); }
-.phd h2 { margin: 0; font: 600 13px/1 var(--sans); color: var(--ink); }
-.phd .ver { font: 500 11px/1 var(--mono); color: var(--ink3); }
-.phd .close { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 3px; color: var(--ink3); font-size: 13px; transition: background .15s ease, color .15s ease; }
-.phd .close:hover { background: rgba(237,240,245,.06); color: var(--ink); }
-.pbody { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 2px 12px 12px; scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
-.lede { margin: 10px 0 0; font-size: 12px; color: var(--ink3); }
-.sec { margin-top: 16px; }
-.plabel { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font: 700 11px/1.4 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
-.plabel .hint { font-weight: 600; color: var(--ink2); transition: color .15s ease; }
+.panel :focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: 4px; }
 
-/* Segmented control: a faint track, the chosen item lifted onto the page's dark. */
-.segc { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border-radius: 3px; background: rgba(237,240,245,.05); }
-.segc .ind {
-  position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 3px); border-radius: 3px;
-  background: var(--base); box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 0 0 1px rgba(237,240,245,.07);
-  transition: transform .26s cubic-bezier(.2,.9,.25,1), opacity .15s ease;
+/* Header: mark, the name in Schema's letterspaced caps, a rule in ketchup red. */
+.phd { flex: none; display: flex; align-items: center; gap: 9px; height: 44px; padding: 0 5px 0 12px; border-bottom: 1px solid #902A27; }
+.phd svg { width: 14px; height: 16px; }
+.phd h2 { margin: 0; font: 700 13px/1 var(--sans); letter-spacing: .11em; text-transform: uppercase; color: var(--ink); }
+.phd .sep { flex: none; width: 1px; height: 14px; background: var(--line2); }
+.phd .sub { font: 600 10.5px/1 var(--sans); letter-spacing: .11em; text-transform: uppercase; color: var(--ink3); }
+.phd .ver { margin-left: auto; font: 500 10.5px/1 var(--mono); color: var(--ink3); font-variant-numeric: tabular-nums; }
+.phd .close { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 3px; color: var(--ink3); font-size: 13px; transition: background .15s ease, color .15s ease; }
+.phd .close:hover { background: rgba(237,240,245,.07); color: var(--ink); }
+
+.pbody { flex: 1; overflow: auto; overscroll-behavior: contain; padding: 0 12px 14px; scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
+.lede { margin: 0 -12px; padding: 11px 12px; border-bottom: 1px solid var(--line); background: rgba(237,240,245,.015); font-size: 11.5px; line-height: 1.5; color: var(--ink3); }
+.sec { margin-top: 4px; }
+
+/* Section bands: full-bleed, dim, uppercase — the Outpost's REGISTRATION strip. */
+.plabel {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  height: 26px; margin: 16px -12px 10px; padding: 0 12px;
+  background: #0C1015; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  font: 700 10.5px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink3);
 }
-.segc[data-v="cinematic"] .ind { transform: translateX(calc(100% + 2px)); }
-.segc[data-v="custom"] .ind { opacity: 0; }
-.segc button { position: relative; height: 28px; border-radius: 3px; text-align: center; font: 600 12px/1 var(--sans); color: var(--ink3); transition: color .15s ease; }
-.segc button:hover { color: var(--ink2); }
-.segc button[aria-checked="true"] { color: var(--ink); }
-.mdesc { margin: 8px 0 0; min-height: 2.9em; font-size: 11.5px; line-height: 1.45; color: var(--ink3); }
+.sec:first-of-type .plabel { margin-top: 14px; }
+.plabel .hint { font-weight: 600; letter-spacing: .05em; text-transform: none; color: var(--ink2); transition: color .15s ease; }
 
-/* Lens swatches: a radio group; the chosen one wears the white selection ring. */
+/* Mode: two outlined cards, each carrying its own line — the Outpost's
+   Open / Closed pair. The chosen one lifts onto the red: dot, title, ACTIVE. */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mcard {
+  display: block; padding: 9px 10px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: #0C1015; text-align: left; transition: border-color .15s ease, background .15s ease;
+}
+.mcard:hover { border-color: var(--line2); background: var(--hover); }
+.mcard .mh { display: flex; align-items: center; gap: 6px; }
+.mcard .mdot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ink3); transition: background .15s ease; }
+.mcard b { font: 600 12.5px/1.2 var(--sans); color: var(--ink2); }
+.mcard .mact { margin-left: auto; opacity: 0; font: 600 9px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+.mcard .md { display: block; margin-top: 5px; font-size: 11px; line-height: 1.45; color: var(--ink3); }
+.mcard[aria-checked="true"] { border-color: #902A27; background: #161013; }
+.mcard[aria-checked="true"] .mdot { background: var(--brand); }
+.mcard[aria-checked="true"] b { color: var(--ink); }
+.mcard[aria-checked="true"] .mact { opacity: 1; }
+.mdesc { margin: 9px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--ink3); }
+.mdesc::before { content: '▸  '; color: var(--acc); }
+
+/* Lenses: a row of swatches, each named. Selection is WHITE, never red. */
 .lenses { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
-.lens { display: grid; place-items: center; height: 30px; border-radius: 3px; border: 1px solid var(--line); background: rgba(237,240,245,.03); transition: border-color .15s ease, background .15s ease; }
-.lens i { width: 14px; height: 14px; border-radius: 2px; background: var(--c); box-shadow: 0 0 10px -2px var(--c); transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
-.lens:hover { border-color: var(--line2); background: rgba(237,240,245,.06); }
-.lens:hover i { transform: scale(1.14); }
+.lens {
+  display: grid; place-items: center; gap: 5px; padding: 8px 2px 7px;
+  border: 1px solid var(--line); border-radius: 8px; background: #0C1015;
+  transition: border-color .15s ease, background .15s ease;
+}
+.lens i { width: 15px; height: 15px; border-radius: 3px; background: var(--c); box-shadow: 0 0 6px -3px var(--c); transition: transform .2s cubic-bezier(.2,.9,.3,1.3); }
+.lens span { font: 600 9.5px/1 var(--mono); letter-spacing: .02em; color: var(--ink3); transition: color .15s ease; }
+.lens:hover { border-color: var(--line2); background: var(--hover); }
+.lens:hover i { transform: scale(1.1); }
 .lens:active i { transform: scale(.9); }
-.lens[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px rgba(237,240,245,.35); }
+.lens[aria-checked="true"] { border-color: var(--ink); background: var(--hover); box-shadow: inset 0 0 0 1px rgba(237,240,245,.4); }
+.lens[aria-checked="true"] span { color: var(--ink); }
 
 /* Switch rows: Schema's Switch — a 28×16 track, a 10 px thumb that travels on
-   transform; on = white track, page-dark thumb. Position, not just colour, carries state. */
-.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 7px 0; border-radius: 3px; text-align: left; }
-.row + .row { border-top: 1px solid rgba(36,42,54,.6); }
+   transform; on = white track, page-dark thumb. Position, not just colour,
+   carries state. */
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 8px 0; border-radius: 3px; text-align: left; }
+.row + .row { border-top: 1px solid var(--line); }
 .t { display: block; font-size: 12.5px; line-height: 1.3; color: var(--ink); }
 .s { display: block; margin-top: 2px; font-size: 11px; line-height: 1.35; color: var(--ink3); }
 .sw { position: relative; flex: none; width: 28px; height: 16px; border-radius: 3px; border: 1px solid var(--line2); background: rgba(237,240,245,.04); transition: background .18s ease, border-color .18s ease; }
@@ -796,60 +830,80 @@ a { color: inherit; }
 .row[aria-checked="true"]:active .sw::after { transform: translate(12px, -50%) scale(.85); }
 
 /* Fine-tune: a quiet disclosure under the mode. */
-.tune { margin-top: 6px; }
+.tune { margin-top: 8px; border-top: 1px solid var(--line); }
 .tune summary {
-  display: flex; align-items: center; gap: 6px; height: 28px; margin: 0 -8px; padding: 0 8px; border-radius: 3px;
-  list-style: none; cursor: pointer; font: 600 12px/1 var(--sans); color: var(--ink2); transition: background .15s ease, color .15s ease;
+  display: flex; align-items: center; gap: 6px; height: 30px; padding: 0;
+  list-style: none; cursor: pointer; font: 600 11.5px/1 var(--sans); color: var(--ink2); transition: color .15s ease;
 }
 .tune summary::-webkit-details-marker { display: none; }
 .tune summary::before { content: ''; width: 5px; height: 5px; border: 0 solid currentColor; border-right-width: 1.5px; border-bottom-width: 1.5px; transform: rotate(-45deg); transition: transform .2s ease; }
 .tune[open] summary::before { transform: rotate(45deg); }
-.tune summary:hover { background: rgba(237,240,245,.05); color: var(--ink); }
-.tune .cnt { margin-left: auto; font: 500 11px/1 var(--mono); color: var(--ink3); }
+.tune summary:hover { color: var(--ink); }
+.tune .cnt { margin-left: auto; font: 500 10.5px/1 var(--mono); color: var(--ink3); }
 .tune .cnt.custom { color: var(--acc2); }
 .tune .rows { padding-top: 2px; }
 
-/* The Schema card: one hairline frame, a soft top light, the one red CTA. */
-.join { position: relative; overflow: hidden; margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--base); }
-.join::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(90% 70% at 100% 0%, rgba(214,58,50,.14), transparent 65%), linear-gradient(to bottom, rgba(237,240,245,.035), transparent 40px); }
-.jh { position: relative; display: flex; align-items: center; gap: 7px; font: 600 12.5px/1 var(--sans); color: var(--ink); }
+/* The Schema card: hairline frame, no bloom, one flat ketchup button. */
+.join { position: relative; overflow: hidden; margin-top: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #0C1015; }
+.join::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(237,240,245,.03), transparent 34px); }
+.jh { position: relative; display: flex; align-items: center; gap: 7px; font: 700 11px/1 var(--sans); letter-spacing: .11em; text-transform: uppercase; color: var(--ink); }
 .jh svg { width: 12px; height: 14px; }
-.join p { position: relative; margin: 6px 0 10px; font-size: 12px; color: var(--ink3); }
+.join p { position: relative; margin: 7px 0 11px; font-size: 11.5px; line-height: 1.5; color: var(--ink3); }
 .join p b { color: var(--ink2); font-weight: 600; }
 .cta {
   position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 28px;
-  border-radius: 3px; border: 1px solid rgba(214,58,50,.45); background: var(--brand); color: #fff;
+  border-radius: 3px; background: var(--brand); color: #fff;
   font: 600 12px/1 var(--sans); text-decoration: none; transition: background .15s ease, transform .12s ease;
 }
 .cta:hover { background: #E24E45; }
 .cta:active { transform: translateY(1px); }
 .panel .cta:focus-visible { outline-color: #fff; }
 
-.pft { flex: none; display: flex; align-items: center; gap: 14px; height: 36px; padding: 0 12px; border-top: 1px solid var(--line); font: 500 11px/1 var(--sans); color: var(--ink3); }
+/* Footer: the Outpost status bar — black, hairline-ruled segments, mono caps. */
+.pft {
+  flex: none; display: flex; align-items: stretch; height: 30px; padding: 0;
+  border-top: 1px solid var(--line); background: #090C11;
+  font: 500 10px/1 var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink3);
+}
+.pft > span { display: flex; align-items: center; gap: 5px; padding: 0 10px; border-right: 1px solid var(--line); white-space: nowrap; }
+.pft > span:last-child { border-right: 0; border-left: 1px solid var(--line); margin-left: auto; }
 @media (hover: none) { .pft { display: none; } } /* keyboard hints mean nothing on a touch screen */
-kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-right: 2px; padding: 0 4px; border: 1px solid var(--line2); border-bottom-width: 2px; border-radius: 3px; font: 600 10px/1 var(--mono); color: var(--ink2); }
+kbd {
+  display: inline-grid; place-items: center; min-width: 16px; height: 16px; padding: 0 4px;
+  border: 1px solid var(--line2); border-radius: 2px; background: #0A0D12;
+  font: 600 9.5px/1 var(--mono); letter-spacing: 0; color: var(--ink2);
+}
 
 /* Boot. The page stays where it is; a single scan line travels down and the
    Grid appears behind it. The heavy read happens while the line waits at the top. */
 .boot { position: fixed; inset: 0; z-index: ${Z + 47}; pointer-events: none; }
 .boot .cover { position: absolute; inset: 0; background: var(--base); opacity: 0; transition: opacity .16s ease; }
 .boot.hold .cover { opacity: 1; }
-.boot.go .cover { opacity: 1; animation: unveil .72s cubic-bezier(.65,0,.25,1) forwards; }
+.boot.run .cover { opacity: 1; animation: unveil .72s cubic-bezier(.65,0,.25,1) forwards; }
 @keyframes unveil { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
 .boot .edge {
-  position: absolute; left: 0; right: 0; top: 0; height: 1px;
-  background: var(--acc2);
-  box-shadow: 0 0 8px var(--acc), 0 0 36px 1px color-mix(in srgb, var(--acc) 22%, transparent);
+  position: absolute; left: 0; right: 0; top: -128px; height: 130px;
+  background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--acc) 5%, transparent) 74%, color-mix(in srgb, var(--acc) 14%, transparent) 94%, transparent 100%);
   opacity: 0; transition: opacity .16s ease;
 }
-.boot.hold .edge, .boot.go .edge { opacity: 1; }
-.boot.go .edge { animation: edge .72s cubic-bezier(.65,0,.25,1) forwards; }
+.boot .edge::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--acc2) 70%, transparent) 55%, var(--ink) 100%);
+  box-shadow: 0 0 10px -3px var(--acc);
+}
+.boot.hold .edge, .boot.run .edge { opacity: 1; }
+.boot.run .edge { animation: edge .72s cubic-bezier(.65,0,.25,1) forwards; }
 @keyframes edge { 0% { transform: translateY(0); } 92% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
 .boot .say {
-  position: absolute; left: 16px; top: 10px; display: flex; align-items: center; gap: 8px;
+  /* The readout rides ON the line: the band's core is its bottom edge, so the lore
+     travels with the scan instead of lying across the page underneath it. */
+  position: absolute; left: 14px; bottom: 7px; display: flex; align-items: center; gap: 8px;
+  max-width: calc(100vw - 28px); overflow: hidden;
+  padding: 4px 9px; border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent); border-radius: 3px;
+  background: color-mix(in srgb, var(--base) 90%, transparent);
   font: 600 10px/1 var(--mono); letter-spacing: .14em; color: var(--ink2); white-space: nowrap;
 }
-.boot .say svg { width: 11px; height: 13px; filter: drop-shadow(0 0 5px rgba(214,58,50,.6)); }
+.boot .say svg { width: 11px; height: 13px; }
 .boot .say b { color: var(--ink); font-weight: 600; }
 .boot .say i { font-style: normal; color: var(--acc); }
 
@@ -868,12 +922,12 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
   font: 400 12.5px/1.4 var(--sans); color: var(--ink2);
   animation: pop .35s var(--spring) both;
 }
-.toast > svg { flex: none; width: 22px; height: 25px; filter: drop-shadow(0 0 8px rgba(214,58,50,.5)); }
+.toast > svg { flex: none; width: 22px; height: 25px; }
 .toast b { display: block; margin-bottom: 5px; font: 800 11px/1 var(--sans); letter-spacing: .2em; color: var(--ink); }
 .go { flex: none; height: 30px; padding: 0 12px; border-radius: 8px; background: var(--brand); color: #fff; font: 700 10px/1 var(--mono); letter-spacing: .12em; transition: background .15s ease, transform .16s cubic-bezier(.2,.9,.3,1.3); }
 .go:hover { background: #E24E45; transform: translateY(-1px); }
 .toast .x { align-self: stretch; padding: 0 6px; border-radius: 3px; }
-.toast.whisper { bottom: 52px; border-color: color-mix(in srgb, var(--acc) 45%, var(--line)); box-shadow: 0 24px 60px -20px rgba(0,0,0,.85), 0 0 34px -14px var(--acc); }
+.toast.whisper { bottom: 52px; border-color: color-mix(in srgb, var(--acc) 45%, var(--line)); box-shadow: 0 24px 60px -20px rgba(0,0,0,.85), 0 0 18px -13px var(--acc); }
 .toast.whisper .say { display: block; min-height: 1.4em; font: 500 11.5px/1.5 var(--mono); color: var(--ink2); }
 .toast.whisper .say::after { content: '▍'; color: var(--acc); animation: caret .6s steps(1) infinite; }
 .toast.whisper .door { display: flex; align-items: center; gap: 10px; margin-top: 9px; flex-wrap: wrap; }
@@ -973,6 +1027,10 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
     // ─── Read the page ──────────────────────────────────────────────────────
 
     const ICON_RE = /icon|awesome|material|symbol|glyph|fontello|dashicons|octicon|codicon|icomoon|remix|feather|ionicons|lucide/i;
+    // Anything already set in a code face stays one. Without this the type layer
+    // pushes source into the sans: GitHub's blob lines carry no <pre> at all, they
+    // inherit ui-monospace inside a <td>, and Wikipedia's <code> was going sans too.
+    const MONO_RE = /monospace|mono|courier|consolas|menlo|cascadia|fira code|sf mono|roboto mono|jetbrains|source code|ubuntu mono|inconsolata|ibm plex|hack|office code/i;
     const NUM_RE = /^[\s()+\-−–#$€£¥₽%.,:/×]*\d[\d\s()+\-−–#$€£¥₽%.,:/×kKmMbB]*$/;
     const SKIP_TAGS = new Set([
       'SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'LINK', 'META', 'TITLE', 'BR', 'WBR',
@@ -1043,6 +1101,7 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
       }
 
       if (ICON_RE.test(cs.fontFamily)) t.push('i');
+      else if (MONO_RE.test(cs.fontFamily)) t.push('m');
 
       // Links are always read: a logo link with no text of its own keeps its tone
       // instead of turning link-blue.
@@ -1181,9 +1240,9 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
     }
 
     const MODE_COPY = {
-      calm: 'A dark mode for all-day reading. Keeps each site’s own typefaces.',
-      cinematic: 'The full render: Schema type, a scan-line boot, target lock and duotone images.',
-      custom: 'Your own mix of layers. Pick a mode to reset it.',
+      calm: 'All-day dark mode. Each site keeps its own typefaces.',
+      cinematic: 'The full render: scan boot, target lock, duotone images.',
+      custom: 'Your own mix of the layers below — pick a mode to reset it.',
     };
 
     // A radio group that behaves like Schema's SegmentedControl: one tab stop,
@@ -1214,11 +1273,22 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
           h('span', { class: 'sw', 'aria-hidden': 'true' }),
         );
       const label = (text, hint) => h('div', { class: 'plabel' }, h('span', { text }), hint || null);
-      const modeBtn = (key, text) =>
-        h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1', 'data-mode': key, onclick: () => setMode(key) }, text);
+      const modeBtn = (key, name, desc) =>
+        h(
+          'button',
+          { class: 'mcard', type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1', 'data-mode': key, onclick: () => setMode(key) },
+          h(
+            'span',
+            { class: 'mh' },
+            h('i', { class: 'mdot', 'aria-hidden': 'true' }),
+            h('b', { text: name }),
+            h('span', { class: 'mact', 'aria-hidden': 'true', text: 'Active' }),
+          ),
+          h('span', { class: 'md', text: desc }),
+        );
 
-      ui.modes = radioGroup('segc', 'Mode', [h('span', { class: 'ind', 'aria-hidden': 'true' }), modeBtn('calm', 'Calm'), modeBtn('cinematic', 'Cinematic')]);
-      ui.modeDesc = h('p', { class: 'mdesc' });
+      ui.modes = radioGroup('modes', 'Mode', [modeBtn('calm', 'Calm', MODE_COPY.calm), modeBtn('cinematic', 'Cinematic', MODE_COPY.cinematic)]);
+      ui.modeDesc = h('p', { class: 'mdesc', hidden: true, text: MODE_COPY.custom });
       ui.tuneCount = h('span', { class: 'cnt' });
       ui.lensName = h('span', { class: 'hint' });
       ui.joinN = h('b', { text: 'Cities are joining the Grid' });
@@ -1232,6 +1302,7 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
             'button',
             { class: 'lens', type: 'button', role: 'radio', 'aria-checked': 'false', tabindex: '-1', 'data-lens': key, 'aria-label': `${L.name} lens`, title: L.name, hidden: L.secret && !prefs.void, onclick: () => setLens(key) },
             h('i', { style: { '--c': L.acc } }),
+            h('span', { text: L.name }),
           );
           // Hovering or focusing a lens previews it on the live page; leaving puts yours back.
           b.addEventListener('pointerenter', () => previewLens(key));
@@ -1250,6 +1321,8 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
           { class: 'phd' },
           mark(),
           h('h2', { text: 'Grid Mode' }),
+          h('span', { class: 'sep', 'aria-hidden': 'true' }),
+          h('span', { class: 'sub', text: 'Settings' }),
           h('span', { class: 'ver', text: 'v' + VERSION }),
           h('button', { class: 'close', type: 'button', title: 'Close (Esc)', 'aria-label': 'Close settings', onclick: () => togglePanel(false) }, '✕'),
         ),
@@ -1323,7 +1396,8 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
         b.setAttribute('aria-checked', String(on));
         b.tabIndex = on || (mode === 'custom' && b.dataset.mode === 'calm') ? 0 : -1; // one tab stop
       }
-      ui.modeDesc.textContent = MODE_COPY[mode];
+      ui.modeDesc.hidden = mode !== 'custom'; // the cards carry their own line
+      ui.modeDesc.textContent = MODE_COPY.custom;
       for (const b of ui.panel.querySelectorAll('.lens')) {
         const on = b.dataset.lens === prefs.lens;
         b.setAttribute('aria-checked', String(on));
@@ -1968,7 +2042,7 @@ kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; 
           setTimeout(() => {
             done();
             boot.classList.remove('hold');
-            boot.classList.add('go');
+            boot.classList.add('run');
             setTimeout(() => boot.remove(), 800);
           }, 170),
         );
