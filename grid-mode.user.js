@@ -1,13 +1,17 @@
 // ==UserScript==
 // @name         Grid Mode — Turn Any Website Into a Cyberpunk Terminal (Alt+G)
 // @namespace    https://schema.cx/grid-mode
-// @version      1.7.2
+// @version      1.7.3
 // @description  Press Alt+G on any website to see it rendered from inside the Grid: a cyberpunk terminal with a scan-line boot, target-lock brackets, decoding headlines and duotone images. Calm mode is a clean dark mode for all-day reading. Five colour lenses. Alt+G again and the page is untouched. No tracking.
 // @author       Schema
 // @homepageURL  https://schema.cx/?ref=grid-mode
 // @supportURL   https://github.com/sch8ma/grid-mode/issues
 // @icon         https://schema.cx/favicon-32x32.png
 // @license      MIT
+// @tag          dark mode
+// @tag          theme
+// @tag          cyberpunk
+// @tag          terminal
 // @match        *://*/*
 // @exclude      *://schema.cx/*
 // @exclude      *://*.schema.cx/*
@@ -93,7 +97,7 @@
 
     // ─── Constants ──────────────────────────────────────────────────────────
 
-    const VERSION = '1.7.2';
+    const VERSION = '1.7.3';
     const HOST = location.hostname || 'local';
     const JOIN_URL = 'https://schema.cx/?ref=grid-mode';
     const STATS_URL = 'https://api.schema.cx/api/stats';
@@ -2075,16 +2079,16 @@ kbd {
 
     const pick = (list) => list[(Math.random() * list.length) | 0];
 
-    // Three doors into Schema's closed beta, one at the end of each trail. Each is
-    // a group key: one code, a few dozen places, its own name, so the Architects
-    // can see which secret brought whom. When the places are gone the door closes;
-    // new versions of the Grid may hide new ones.
-    const DOORS = {
-      console: 'SCH-CITIZEN-MWHYZFSC',
-      ensina: 'SCH-CITIZEN-80AYEPQ6',
-      void: 'SCH-CITIZEN-6QVNBNWH',
-    };
-    const doorUrl = (via) => `https://schema.cx/beta?code=${DOORS[via]}&ref=grid-mode-${via}`;
+    // Three doors into Schema's closed beta, one at the end of each trail. They all
+    // open onto the same group key: one code, a few dozen places. Each place this
+    // script is published (Greasy Fork, OpenUserJS, ScriptCat) carries its OWN key,
+    // so the Architects can see which directory brought whom, and the ref tag adds
+    // which secret. When the places are gone the door closes; new versions of the
+    // Grid may hide new ones.
+    const BETA_KEY = 'SCH-CITIZEN-HCSS38GY';
+    const BETA_FROM = 'greasyfork';
+    const DOORS = { console: BETA_KEY, ensina: BETA_KEY, void: BETA_KEY };
+    const doorUrl = (via) => `https://schema.cx/beta?code=${DOORS[via]}&ref=grid-mode-${BETA_FROM}-${via}`;
     let ensinaCalls = 0;
 
     const BOOT_LORE = [
