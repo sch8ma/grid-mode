@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Grid Mode — I Turned the Entire Internet Into a Cyberpunk Terminal
+// @name         Grid Mode — Turn Any Website Into a Cyberpunk Terminal (Alt+G)
 // @namespace    https://schema.cx/grid-mode
-// @version      1.7.0
-// @description  Press Alt+G on any website to render it through the Grid. Calm is a beautiful dark mode for every site; Cinematic adds a terminal boot, target-lock brackets, decoding headlines, scanlines and duotone images. Five colour lenses. Press it again to come back. Made by Schema.
+// @version      1.7.1
+// @description  Press Alt+G on any website to see it rendered from inside the Grid: a cyberpunk terminal with a scan-line boot, target-lock brackets, decoding headlines and duotone images. Calm mode is a clean dark mode for all-day reading. Five colour lenses. Alt+G again and the page is untouched. No tracking.
 // @author       Schema
 // @homepageURL  https://schema.cx/?ref=grid-mode
 // @supportURL   https://github.com/sch8ma/grid-mode/issues
@@ -93,7 +93,7 @@
 
     // ─── Constants ──────────────────────────────────────────────────────────
 
-    const VERSION = '1.7.0';
+    const VERSION = '1.7.1';
     const HOST = location.hostname || 'local';
     const JOIN_URL = 'https://schema.cx/?ref=grid-mode';
     const STATS_URL = 'https://api.schema.cx/api/stats';
